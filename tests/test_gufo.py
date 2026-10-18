@@ -216,7 +216,7 @@ class GufoCommandTests(unittest.TestCase):
     def build(
         self, directory: str, *, mode: str = "baseline",
         thinking_effort: str = "high", max_pending_per_client: int = 4,
-        extra_args: str = "",
+        extra_args: str = "", served_model_name: str = "",
     ) -> list[str]:
         root = Path(directory)
         target = root / "target.gguf"
@@ -261,6 +261,7 @@ class GufoCommandTests(unittest.TestCase):
                 max_pending_per_client=max_pending_per_client,
                 draft_tokens=7,
                 extra_args=extra_args,
+                served_model_name=served_model_name,
             )
 
     def test_baseline_uses_gufo_serve_and_read_only_model_mount(self) -> None:
@@ -364,6 +365,11 @@ class GufoCommandTests(unittest.TestCase):
         self.assertEqual(command[command.index("--speculative") + 1], "dflash2")
         self.assertEqual(command[command.index("--dflash-model") + 1], "/models/speculation/dflash.gguf")
         self.assertEqual(command[command.index("--draft-tokens") + 1], "7")
+
+    def test_served_model_name_override_replaces_the_catalogue_name(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            command = self.build(directory, served_model_name="my-model")
+        self.assertEqual(command[command.index("--served-model-name") + 1], "my-model")
 
     def test_rejects_owned_options_in_extra_arguments(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

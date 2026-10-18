@@ -3,6 +3,7 @@
 import os
 import shlex
 import subprocess
+from pathlib import Path
 
 from textual import on
 from textual.app import ComposeResult
@@ -172,6 +173,9 @@ class LlamaCppServerPanel(BackendServerPanel):
             with Horizontal(classes="inline-row"):
                 yield Label("API key", id="llama-api-key-label", classes="inline-label")
                 yield Input(placeholder="Optional llama-server API key", password=True, id="llama-api-key")
+            with Horizontal(classes="inline-row"):
+                yield Label("API model name", id="llama-served-model-label", classes="inline-label")
+                yield Input(placeholder="Name exposed by /v1/models", id="llama-served-model")
             with Horizontal(classes="extra-args-row"):
                 yield Label("Extra args", id="llama-extra-args-label", classes="inline-label")
                 yield TextArea(
@@ -411,6 +415,9 @@ class LlamaCppServerPanel(BackendServerPanel):
             mtp_select.value = ""
             self.query_one("#llama-mtp-note", Static).update("")
 
+    def _default_served_model(self, model_path: str) -> str:
+        return Path(model_path).stem if model_path else ""
+
     @on(SearchableSelect.Changed, "#llama-model")
     def model_changed(self, event: SearchableSelect.Changed) -> None:
         path = str(event.value or "")
@@ -420,6 +427,7 @@ class LlamaCppServerPanel(BackendServerPanel):
         base = "--no-jinja" if config and config.get("no_jinja") else "--jinja"
         self._expected_extra_args = base
         self.query_one("#llama-extra-args", TextArea).text = base
+        self.query_one("#llama-served-model", Input).value = self._default_served_model(path)
 
         mtp = self._effective_mtp_config(config)
         self._refresh_mtp_controls(mtp)
@@ -786,6 +794,7 @@ class LlamaCppServerPanel(BackendServerPanel):
                 if toolbox.supports_load_mode
                 else ""
             ),
+            served_model_name=self.query_one("#llama-served-model", Input).value.strip(),
         )
         self._pending_command = command
         preview = redact_command(command)

@@ -33,7 +33,7 @@ def build_server_cmd(
     host: str = "127.0.0.1", port: int = 18080, context_size: int | None = None,
     sessions: int = 1, max_tokens: int = 32768, draft_tokens: int | None = None,
     thinking_effort: str = "high", max_pending_per_client: int = 4,
-    vision_enabled: bool = False, extra_args: str = "",
+    vision_enabled: bool = False, extra_args: str = "", served_model_name: str = "",
 ) -> list[str]:
     if platform_id != "strix-halo":
         raise ValueError("Gufo supports Strix Halo (gfx1151) only.")
@@ -134,7 +134,7 @@ def build_server_cmd(
         "--model", f"/models/target/{model_path.name}",
         "--context", str(context),
         "--max-tokens", str(max_tokens),
-        "--served-model-name", model["served_model_name"],
+        "--served-model-name", served_model_name or model["served_model_name"],
     ])
     if projector_path is not None:
         command.extend(["--mmproj", f"/models/vision/{projector_path.name}"])
