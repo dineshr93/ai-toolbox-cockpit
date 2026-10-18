@@ -34,12 +34,26 @@ def _extra_arguments(value: str) -> list[str]:
     return arguments
 
 
-def _served_model_name(arguments: list[str], default: str) -> str:
+def _split_served_model_name(
+    arguments: list[str], default: str
+) -> tuple[str, list[str]]:
+    """Pull --served-model-name out of the extra args; it is emitted once, early."""
     prefix = f"{SERVED_MODEL_OPTION}="
-    for argument in arguments:
+    name = default
+    rest = []
+    index = 0
+    while index < len(arguments):
+        argument = arguments[index]
         if argument.startswith(prefix):
-            return argument[len(prefix):] or default
-    return default
+            name = argument[len(prefix):] or default
+            index += 1
+        elif argument == SERVED_MODEL_OPTION:
+            name = arguments[index + 1] or default
+            index += 2
+        else:
+            rest.append(argument)
+            index += 1
+    return name, rest
 
 
 def build_server_cmd(
@@ -116,7 +130,9 @@ def build_server_cmd(
             raise ValueError("Download or repair the matching BF16 vision projector first.")
         projector_path = Path(projector)
 
-    extra = _extra_arguments(extra_args)
+    served_model_name, extra_arguments = _split_served_model_name(
+        _extra_arguments(extra_args), model["served_model_name"]
+    )
     command = [engine, "run", "--rm", "-it", "--name", CONTAINER_NAME]
     command.extend(upgrade_groups_for_podman(engine, list(engine_args)))
     command.append("--ipc=host")
@@ -150,7 +166,7 @@ def build_server_cmd(
         "--model", f"/models/target/{model_path.name}",
         "--context", str(context),
         "--max-tokens", str(max_tokens),
-        "--served-model-name", _served_model_name(extra, model["served_model_name"]),
+        "--served-model-name", served_model_name,
     ])
     if projector_path is not None:
         command.extend(["--mmproj", f"/models/vision/{projector_path.name}"])
@@ -175,8 +191,5 @@ def build_server_cmd(
         ])
     elif speculation_mode == "dspark":
         command.extend(["--dspark-model", container_sidecar])
-    command.extend(
-        argument for argument in extra
-        if not argument.startswith(f"{SERVED_MODEL_OPTION}=")
-    )
+    command.extend(extra_arguments)
     return command

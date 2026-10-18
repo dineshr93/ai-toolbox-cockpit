@@ -366,10 +366,14 @@ class GufoCommandTests(unittest.TestCase):
         self.assertEqual(command[command.index("--draft-tokens") + 1], "7")
 
     def test_extra_args_supply_the_served_model_name(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            command = self.build(directory, extra_args="--served-model-name=my-model")
-        self.assertEqual(command.count("--served-model-name"), 1)
-        self.assertEqual(command[command.index("--served-model-name") + 1], "my-model")
+        for form in ("--served-model-name=my-model", "--served-model-name my-model"):
+            with self.subTest(form=form):
+                with tempfile.TemporaryDirectory() as directory:
+                    command = self.build(directory, extra_args=form)
+                self.assertEqual(command.count("--served-model-name"), 1)
+                self.assertEqual(
+                    command[command.index("--served-model-name") + 1], "my-model"
+                )
 
     def test_rejects_owned_options_in_extra_arguments(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
