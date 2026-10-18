@@ -101,7 +101,7 @@ Every server endpoint has its own source file and pure command builder under `ai
 
 | Backend | Controls and defaults |
 | --- | --- |
-| llama.cpp | Local GGUF, image/engine, context, GPU layers, load mode, flash attention, KV-cache type, API key, API model name (`--alias`), GPU visibility, inference profiles, vision projector, MTP, and extra `llama-server` arguments |
+| llama.cpp | Local GGUF, image/engine, context, GPU layers, load mode, flash attention, KV-cache type, API key, GPU visibility, inference profiles, vision projector, MTP, and extra `llama-server` arguments (prefilled with `--jinja --alias <model name>`) |
 | DS4 | Exact local GGUF, context, graph/distributed prefill, disk KV cache, SSD expert streaming, embedded MTP, external MTP or DSpark support model, compatible vision encoder, standalone/coordinator/worker roles, and tensor-parallel TCP/RoCE transport for DeepSeek V4.1 Flash Q2 |
 | vLLM | Hugging Face repository or read-only local snapshot, tensor parallelism, concurrency, context, GPU utilisation, dtype, eager mode, API key, attention backend, and persistent HF/vLLM/Triton/AITER caches |
 | ComfyUI | Model/input/output/user paths, host/port, BF16 VAE, GPU-only mode, mmap/smart-memory behavior, and cache mode |
