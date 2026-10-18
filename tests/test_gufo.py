@@ -376,6 +376,11 @@ class GufoCommandTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "dedicated Gufo control"):
                 self.build(directory, extra_args="--context=4096")
 
+    def test_rejects_quoted_extra_argument_as_one_word(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            with self.assertRaisesRegex(ValueError, "unquoted separate words"):
+                self.build(directory, extra_args="'--served-model-name local-model'")
+
     def test_rejects_missing_target_and_sidecar(self) -> None:
         model = {
             "model_path": "target.gguf",

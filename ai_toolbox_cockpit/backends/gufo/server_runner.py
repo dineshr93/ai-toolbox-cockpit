@@ -24,6 +24,10 @@ def _extra_arguments(value: str) -> list[str]:
         option = argument.split("=", 1)[0]
         if option in _OWNED_OPTIONS:
             raise ValueError(f"Use the dedicated Gufo control for {option}.")
+        if argument.startswith("-") and any(char.isspace() for char in argument):
+            raise ValueError(
+                f"Extra Gufo args must be unquoted separate words, not {argument!r}."
+            )
     return arguments
 
 
