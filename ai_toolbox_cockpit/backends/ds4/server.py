@@ -602,41 +602,45 @@ class Ds4ServerPanel(BackendServerPanel):
             if rdma_gid_index and not rdma_gid_index.isdigit():
                 self.notify("RDMA GID index must be a non-negative integer.", severity="error")
                 return
-        self._pending_command = build_server_cmd(
-            engine, toolbox.image, model, int(context),
-            self.query_one("#ds4-host", Input).value,
-            self.query_one("#ds4-port", Input).value,
-            kv_enabled, kv_dir, kv_mb or 0, prefill,
-            self.query_one("#ds4-mtp", SearchableSelect).value,
-            self.query_one("#ds4-extra-args", TextArea).text,
-            role,
-            self.query_one("#ds4-layers", Input).value,
-            self.query_one("#ds4-peer", Input).value,
-            {"args": list(profile.engine_args), "server_binary": toolbox.server_binary or "ds4-server"},
-            self.query_one("#ds4-ssd-enabled", CockpitCheckbox).value,
-            self.query_one("#ds4-ssd-experts", Input).value,
-            self.query_one("#ds4-ssd-layers", Input).value,
-            self.query_one("#ds4-ssd-cold", CockpitCheckbox).value,
-            dist_prefill if role == "Coordinator" else None,
-            dist_window if role == "Coordinator" else None,
-            self.query_one("#ds4-mxfp4-tile4-enabled", Checkbox).value,
-            self.query_one("#ds4-mxfp4-down-rgroup-enabled", Checkbox).value,
-            v41_decoder_swa_bounded_replay_enabled=self.query_one(
-                "#ds4-v41-bounded-replay-enabled", Checkbox
-            ).value,
-            dspark_enabled=dspark_enabled,
-            dspark_path=self.query_one("#ds4-dspark-model", SearchableSelect).value,
-            dspark_confidence=dspark_confidence,
-            dspark_distributed=bool(self._model_defaults.get("dspark_distributed", False)),
-            vision_path=self.query_one("#ds4-vision", SearchableSelect).value,
-            mtp_enabled=self.query_one("#ds4-mtp-enabled", Checkbox).value,
-            tensor_parallel=tensor_parallel,
-            transport=transport,
-            rdma_device=rdma_device,
-            rdma_port=rdma_port,
-            rdma_gid_index=rdma_gid_index,
-            peer_default_port=str(self._model_defaults.get("distributed_port", 8081)),
-        )
+        try:
+            self._pending_command = build_server_cmd(
+                engine, toolbox.image, model, int(context),
+                self.query_one("#ds4-host", Input).value,
+                self.query_one("#ds4-port", Input).value,
+                kv_enabled, kv_dir, kv_mb or 0, prefill,
+                self.query_one("#ds4-mtp", SearchableSelect).value,
+                self.query_one("#ds4-extra-args", TextArea).text,
+                role,
+                self.query_one("#ds4-layers", Input).value,
+                self.query_one("#ds4-peer", Input).value,
+                {"args": list(profile.engine_args), "server_binary": toolbox.server_binary or "ds4-server"},
+                self.query_one("#ds4-ssd-enabled", CockpitCheckbox).value,
+                self.query_one("#ds4-ssd-experts", Input).value,
+                self.query_one("#ds4-ssd-layers", Input).value,
+                self.query_one("#ds4-ssd-cold", CockpitCheckbox).value,
+                dist_prefill if role == "Coordinator" else None,
+                dist_window if role == "Coordinator" else None,
+                self.query_one("#ds4-mxfp4-tile4-enabled", Checkbox).value,
+                self.query_one("#ds4-mxfp4-down-rgroup-enabled", Checkbox).value,
+                v41_decoder_swa_bounded_replay_enabled=self.query_one(
+                    "#ds4-v41-bounded-replay-enabled", Checkbox
+                ).value,
+                dspark_enabled=dspark_enabled,
+                dspark_path=self.query_one("#ds4-dspark-model", SearchableSelect).value,
+                dspark_confidence=dspark_confidence,
+                dspark_distributed=bool(self._model_defaults.get("dspark_distributed", False)),
+                vision_path=self.query_one("#ds4-vision", SearchableSelect).value,
+                mtp_enabled=self.query_one("#ds4-mtp-enabled", Checkbox).value,
+                tensor_parallel=tensor_parallel,
+                transport=transport,
+                rdma_device=rdma_device,
+                rdma_port=rdma_port,
+                rdma_gid_index=rdma_gid_index,
+                peer_default_port=str(self._model_defaults.get("distributed_port", 8081)),
+            )
+        except ValueError as error:
+            self.notify(str(error), severity="error")
+            return
         self.app.push_screen(
             ConfirmModal(
                 f"Start DwarfStar (ds4) server?\n\n{shlex.join(self._pending_command)}",

@@ -1210,6 +1210,7 @@ class AppMountTests(IsolatedAsyncioTestCase):
             "DeepSeek-V4.1-Flash-Q2.gguf",
             "DeepSeek-V4.1-Flash-DSpark-MXFP4.gguf",
             "DeepSeek-V4.1-Flash-Vision.gguf",
+            "DeepSeek-V4.1-Flash-1017-vision-BF16.gguf",
         ]
         models = [{"name": name, "path": "/models/" + name} for name in names]
         with (
@@ -1223,6 +1224,8 @@ class AppMountTests(IsolatedAsyncioTestCase):
         ):
             app = AiToolboxCockpitApp()
             async with app.run_test(size=(200, 70)) as pilot:
+                downloads = app.query_one("#ds4-download-model", SearchableSelect)
+                self.assertIn("kyuz0/deepseek-v4.1-flash-gguf::" + names[5], [value for _, value in downloads._get_filtered()])
                 app.query_one(TabbedContent).active = "tab-servers"
                 app.query_one("#server-backend-select", SearchableSelect).value = "ds4"
                 await pilot.pause()
@@ -1235,22 +1238,43 @@ class AppMountTests(IsolatedAsyncioTestCase):
                 self.assertTrue(app.query_one("#ds4-v41-bounded-replay-enabled", Checkbox).value)
                 self.assertTrue(app.query_one("#ds4-ssd-enabled", Checkbox).disabled)
                 self.assertFalse(app.query_one("#ds4-ssd-enabled", Checkbox).value)
-                self.assertTrue(app.query_one("#ds4-vision", SearchableSelect).disabled)
-                self.assertEqual(app.query_one("#ds4-vision", SearchableSelect).value, "")
+                vision = app.query_one("#ds4-vision", SearchableSelect)
+                self.assertFalse(vision.disabled)
+                self.assertEqual(vision.value, "")
+                self.assertNotIn(models[4]["path"], [value for _, value in vision._get_filtered()])
+                vision.value = models[5]["path"]
+                await pilot.pause()
+                self.assertEqual(vision.value, models[5]["path"])
                 with (
                     patch("ai_toolbox_cockpit.backends.ds4.server.build_server_cmd", return_value=["podman", "run"]) as build,
                     patch.object(app, "push_screen"),
                 ):
                     app.query_one(Ds4ServerPanel).start_pressed()
+                self.assertEqual(build.call_args.kwargs["vision_path"], models[5]["path"])
                 self.assertEqual(build.call_args.kwargs["dspark_path"], models[1]["path"])
                 self.assertTrue(build.call_args.kwargs["dspark_enabled"])
                 self.assertTrue(build.call_args.kwargs["v41_decoder_swa_bounded_replay_enabled"])
                 self.assertIsNone(build.call_args.kwargs["dspark_confidence"])
+                # Simulate a stale selection that bypassed the filtered dropdown.
+                vision.value = models[4]["path"]
+                await pilot.pause()
+                with patch.object(app.query_one(Ds4ServerPanel), "notify") as notify, patch.object(app, "push_screen") as push:
+                    app.query_one(Ds4ServerPanel).start_pressed()
+                notify.assert_called_once()
+                self.assertEqual(notify.call_args.kwargs["severity"], "error")
+                self.assertIn("Vision encoder mismatch", notify.call_args.args[0])
+                self.assertIn(names[5], notify.call_args.args[0])
+                push.assert_not_called()
                 target.value = models[2]["path"]
                 await pilot.pause()
                 self.assertEqual(app.query_one("#ds4-dspark-model", SearchableSelect).value, models[3]["path"])
                 self.assertFalse(app.query_one("#ds4-v41-bounded-replay-enabled", Checkbox).value)
                 self.assertFalse(app.query_one("#ds4-vision", SearchableSelect).disabled)
+                self.assertEqual(vision.value, "")
+                self.assertNotIn(models[5]["path"], [value for _, value in vision._get_filtered()])
+                vision.value = models[4]["path"]
+                await pilot.pause()
+                self.assertEqual(vision.value, models[4]["path"])
 
     async def test_ds4_deepseek_v41_dspark_remains_available_for_tensor_parallel(self) -> None:
         target = {

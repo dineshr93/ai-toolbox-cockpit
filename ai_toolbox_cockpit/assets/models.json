@@ -1178,6 +1178,18 @@
           "sha256": "d3efe0b1f6b6fea54f1c58c5cbeb3fded5967b15b64476aed00c95806ad3e3e9"
         },
         {
+          "id": "ds4-deepseek-v4-1-flash-1017-vision-bf16-gguf",
+          "name": "DeepSeek V4.1 Flash 1017 \u2014 BF16 vision encoder (~0.90 GiB)",
+          "family": "deepseek-v4.1-flash-1017",
+          "repo": "kyuz0/deepseek-v4.1-flash-gguf",
+          "revision": "c003853164273e7603c049b351fb0a98089ef356",
+          "filename": "DeepSeek-V4.1-Flash-1017-vision-BF16.gguf",
+          "artifact_role": "vision_encoder",
+          "size_gb": 0.970555552,
+          "recommended": false,
+          "sha256": "861f1097e8686111fa23dc4a6bf139fd0c4cc114db2f1b4090a267f7683c0dbf"
+        },
+        {
           "name": "DeepSeek V4.1 Flash \u2014 Q2",
           "family": "deepseek-v4.1-flash",
           "repo": "antirez/deepseek-v4.1-flash-gguf",

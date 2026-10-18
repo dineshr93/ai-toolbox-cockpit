@@ -31,6 +31,35 @@ def get_model_artifact(model_path: str) -> dict:
     return {}
 
 
+def validate_vision_pair(model_path: str, vision_path: str) -> None:
+    """Refuse unverified or mismatched checkpoint/encoder catalogue pairs."""
+    if not vision_path:
+        return
+    model = get_model_artifact(model_path)
+    encoder = get_model_artifact(vision_path)
+    family = model.get("family")
+    if (
+        family
+        and model.get("artifact_role", "main") == "main"
+        and encoder.get("artifact_role") == "vision_encoder"
+        and encoder.get("family") == family
+    ):
+        return
+    matches = [
+        entry["filename"] for entry in load_models()["models"]
+        if family and entry.get("family") == family
+        and entry.get("artifact_role") == "vision_encoder"
+    ]
+    guidance = (
+        "Choose the matching vision encoder: " + ", ".join(matches) + "."
+        if matches else "Choose a catalogued model and its matching vision encoder."
+    )
+    raise ValueError(
+        f"Vision encoder mismatch: {Path(vision_path).name} cannot be used with "
+        f"{Path(model_path).name}. {guidance}"
+    )
+
+
 def get_model_family(model_path: str) -> str:
     """Return the curated family for a local artifact, or an empty string."""
     return str(get_model_artifact(model_path).get("family", ""))

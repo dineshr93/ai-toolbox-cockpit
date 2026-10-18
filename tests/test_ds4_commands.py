@@ -142,7 +142,9 @@ class Ds4CommandTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             vision = Path(directory) / "GLM-5.3-Flash-Vision-Encoder.gguf"
             vision.touch()
-            command = self.build(directory, vision_path=str(vision))
+            model = Path(directory) / "GLM-5.3-Flash-Q2.gguf"
+            model.touch()
+            command = self.build(directory, model_path=str(model), vision_path=str(vision))
 
         self.assertEqual(
             command[command.index("--vision") + 1],
@@ -154,7 +156,9 @@ class Ds4CommandTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             vision = Path(directory) / "DeepSeek-V4-Flash-Vision-Encoder.gguf"
             vision.touch()
-            command = self.build(directory, vision_path=str(vision))
+            model = Path(directory) / "DeepSeek-V4-Flash-Vision-Exp-IQ2XXS-w2Q2K-AProjQ8-SExpQ8-OutQ8.gguf"
+            model.touch()
+            command = self.build(directory, model_path=str(model), vision_path=str(vision))
 
         self.assertEqual(
             command[command.index("--vision") + 1],
@@ -223,6 +227,7 @@ class Ds4CommandTests(unittest.TestCase):
         for filename, role, size in (
             ("DeepSeek-V4.1-Flash-1017-Q2.gguf", "main", 365713686528),
             ("DeepSeek-V4.1-Flash-1017-DSpark-MXFP4.gguf", "dspark_support", 7966294016),
+            ("DeepSeek-V4.1-Flash-1017-vision-BF16.gguf", "vision_encoder", 970555552),
         ):
             with self.subTest(filename=filename):
                 artifact = get_model_artifact(filename)
@@ -233,6 +238,42 @@ class Ds4CommandTests(unittest.TestCase):
                 command = get_download_cmd(artifact["repo"], filename, artifact["revision"])
                 self.assertEqual(command[command.index("--revision") + 1], "c003853164273e7603c049b351fb0a98089ef356")
                 self.assertIn(filename, command)
+
+    def test_deepseek_1017_vision_encoder_is_passed_with_matching_q2(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            model = Path(directory) / "DeepSeek-V4.1-Flash-1017-Q2.gguf"
+            vision = Path(directory) / "DeepSeek-V4.1-Flash-1017-vision-BF16.gguf"
+            model.touch()
+            vision.touch()
+            command = self.build(directory, model_path=str(model), vision_path=str(vision))
+        self.assertEqual(get_artifact_role(str(vision)), "vision_encoder")
+        self.assertEqual(command[command.index("--vision") + 1], "/models/" + vision.name)
+        self.assertEqual(command[command.index("-m") + 1], "/models/" + model.name)
+
+    def test_vision_rejects_mismatched_unknown_and_non_encoder_artifacts(self) -> None:
+        cases = [
+            ("DeepSeek-V4.1-Flash-1017-Q2.gguf", "DeepSeek-V4.1-Flash-Vision.gguf"),
+            ("DeepSeek-V4.1-Flash-Q2.gguf", "DeepSeek-V4.1-Flash-1017-vision-BF16.gguf"),
+            ("DeepSeek-V4.1-Flash-1017-Q2.gguf", "GLM-5.3-Flash-Vision-Encoder.gguf"),
+            ("DeepSeek-V4.1-Flash-1017-Q2.gguf", "DeepSeek-V4.1-Flash-1017-DSpark-MXFP4.gguf"),
+            ("DeepSeek-V4.1-Flash-1017-Q2.gguf", "unknown-encoder.gguf"),
+            ("unknown-model.gguf", "DeepSeek-V4.1-Flash-1017-vision-BF16.gguf"),
+        ]
+        with tempfile.TemporaryDirectory() as directory:
+            for model, vision in cases:
+                with self.subTest(model=model, vision=vision):
+                    with self.assertRaisesRegex(ValueError, "Vision encoder mismatch") as error:
+                        self.build(directory, model_path=str(Path(directory) / model), vision_path=str(Path(directory) / vision))
+                    self.assertIn(model, str(error.exception))
+                    self.assertIn(vision, str(error.exception))
+                    self.assertIn("matching vision encoder", str(error.exception))
+
+    def test_extra_arguments_cannot_override_checked_model_or_vision(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            for extra in ("--vision wrong.gguf", "--vision=wrong.gguf", "-m wrong.gguf", "--model=wrong.gguf"):
+                with self.subTest(extra=extra):
+                    with self.assertRaisesRegex(ValueError, "using their selectors"):
+                        self.build(directory, custom_args=extra)
 
     def test_deepseek_1017_launch_pairs_draft_and_bounded_replay(self) -> None:
         filename = "DeepSeek-V4.1-Flash-1017-Q2.gguf"
