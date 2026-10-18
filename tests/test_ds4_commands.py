@@ -217,6 +217,47 @@ class Ds4CommandTests(unittest.TestCase):
         self.assertTrue(defaults["dspark_confidence_auto"])
         self.assertTrue(defaults["dspark_distributed"])
 
+    def test_deepseek_1017_downloads_pin_matching_public_artifacts(self) -> None:
+        from ai_toolbox_cockpit.backends.ds4.config import get_model_artifact
+
+        for filename, role, size in (
+            ("DeepSeek-V4.1-Flash-1017-Q2.gguf", "main", 365713686528),
+            ("DeepSeek-V4.1-Flash-1017-DSpark-MXFP4.gguf", "dspark_support", 7966294016),
+        ):
+            with self.subTest(filename=filename):
+                artifact = get_model_artifact(filename)
+                self.assertEqual(artifact["repo"], "kyuz0/deepseek-v4.1-flash-gguf")
+                self.assertEqual(artifact["family"], "deepseek-v4.1-flash-1017")
+                self.assertEqual(get_artifact_role(filename), role)
+                self.assertEqual(round(artifact["size_gb"] * 1_000_000_000), size)
+                command = get_download_cmd(artifact["repo"], filename, artifact["revision"])
+                self.assertEqual(command[command.index("--revision") + 1], "c003853164273e7603c049b351fb0a98089ef356")
+                self.assertIn(filename, command)
+
+    def test_deepseek_1017_launch_pairs_draft_and_bounded_replay(self) -> None:
+        filename = "DeepSeek-V4.1-Flash-1017-Q2.gguf"
+        defaults = get_model_server_defaults(filename)
+        self.assertEqual(defaults["dspark_support_filename"], "DeepSeek-V4.1-Flash-1017-DSpark-MXFP4.gguf")
+        self.assertTrue(defaults["dspark_confidence_auto"])
+        self.assertTrue(defaults["v41_decoder_swa_bounded_replay"])
+        with tempfile.TemporaryDirectory() as directory:
+            model = Path(directory) / filename
+            support = Path(directory) / defaults["dspark_support_filename"]
+            model.touch()
+            support.touch()
+            command = self.build(
+                directory, model_path=str(model), ctx=defaults["standalone_ctx"],
+                dspark_enabled=True, dspark_path=str(support), dspark_confidence=None,
+                v41_decoder_swa_bounded_replay_enabled=defaults["v41_decoder_swa_bounded_replay"],
+            )
+            self.assertEqual(command[command.index("--mtp-model") + 1], "/models/" + support.name)
+            self.assertIn("--dspark", command)
+            self.assertIn("DS4_ENABLE_V41_DECODER_SWA_BOUNDED_REPLAY=1", command)
+            for flag in ("--batched-session", "--ssd-streaming", "--mtp-draft", "--dspark-confidence"):
+                self.assertNotIn(flag, command)
+            self.assertEqual(resolve_server_binary(str(model), "Worker", True), "ds4")
+        self.assertEqual(get_model_server_defaults("DeepSeek-V4.1-Flash-Q2.gguf")["dspark_support_filename"], "DeepSeek-V4.1-Flash-DSpark-MXFP4.gguf")
+
     def test_deepseek_v41_dspark_uses_fixed_scheduler_flags(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             model = Path(directory) / "DeepSeek-V4.1-Flash-Q2.gguf"

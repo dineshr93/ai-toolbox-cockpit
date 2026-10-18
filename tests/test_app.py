@@ -1201,6 +1201,57 @@ class AppMountTests(IsolatedAsyncioTestCase):
                 self.assertEqual(confidence_label.region.x, confidence_control.region.x)
                 self.assertLess(confidence_label.region.y, confidence_control.region.y)
 
+    async def test_ds4_1017_selects_its_own_draft_and_bounded_replay(self) -> None:
+        from ai_toolbox_cockpit.backends.ds4.server import Ds4ServerPanel
+
+        names = [
+            "DeepSeek-V4.1-Flash-1017-Q2.gguf",
+            "DeepSeek-V4.1-Flash-1017-DSpark-MXFP4.gguf",
+            "DeepSeek-V4.1-Flash-Q2.gguf",
+            "DeepSeek-V4.1-Flash-DSpark-MXFP4.gguf",
+            "DeepSeek-V4.1-Flash-Vision.gguf",
+        ]
+        models = [{"name": name, "path": "/models/" + name} for name in names]
+        with (
+            patch("ai_toolbox_cockpit.app.load_active_platform", return_value="strix-halo"),
+            patch("ai_toolbox_cockpit.views.toolboxes.ToolboxesView.refresh_installed", return_value=None),
+            patch("ai_toolbox_cockpit.app.AiToolboxCockpitApp.check_application_update", return_value=None),
+            patch("ai_toolbox_cockpit.app.available_update", return_value=None),
+            patch("ai_toolbox_cockpit.backends.llama_cpp.server.scan_local_models", return_value=[]),
+            patch("ai_toolbox_cockpit.backends.ds4.server.scan_local_models", return_value=models),
+            patch("ai_toolbox_cockpit.backends.ds4.server.detect_container_engines", return_value=[ContainerEngine.PODMAN]),
+        ):
+            app = AiToolboxCockpitApp()
+            async with app.run_test(size=(200, 70)) as pilot:
+                app.query_one(TabbedContent).active = "tab-servers"
+                app.query_one("#server-backend-select", SearchableSelect).value = "ds4"
+                await pilot.pause()
+                target = app.query_one("#ds4-model", SearchableSelect)
+                target.value = models[0]["path"]
+                await pilot.pause()
+                self.assertTrue(app.query_one("#ds4-dspark-enabled", Checkbox).value)
+                self.assertEqual(app.query_one("#ds4-dspark-model", SearchableSelect).value, models[1]["path"])
+                self.assertEqual(app.query_one("#ds4-dspark-confidence", Input).value, "")
+                self.assertTrue(app.query_one("#ds4-v41-bounded-replay-enabled", Checkbox).value)
+                self.assertTrue(app.query_one("#ds4-ssd-enabled", Checkbox).disabled)
+                self.assertFalse(app.query_one("#ds4-ssd-enabled", Checkbox).value)
+                self.assertTrue(app.query_one("#ds4-vision", SearchableSelect).disabled)
+                self.assertEqual(app.query_one("#ds4-vision", SearchableSelect).value, "")
+                with (
+                    patch("ai_toolbox_cockpit.backends.ds4.server.build_server_cmd", return_value=["podman", "run"]) as build,
+                    patch.object(app, "push_screen"),
+                ):
+                    app.query_one(Ds4ServerPanel).start_pressed()
+                self.assertEqual(build.call_args.kwargs["dspark_path"], models[1]["path"])
+                self.assertTrue(build.call_args.kwargs["dspark_enabled"])
+                self.assertTrue(build.call_args.kwargs["v41_decoder_swa_bounded_replay_enabled"])
+                self.assertIsNone(build.call_args.kwargs["dspark_confidence"])
+                target.value = models[2]["path"]
+                await pilot.pause()
+                self.assertEqual(app.query_one("#ds4-dspark-model", SearchableSelect).value, models[3]["path"])
+                self.assertFalse(app.query_one("#ds4-v41-bounded-replay-enabled", Checkbox).value)
+                self.assertFalse(app.query_one("#ds4-vision", SearchableSelect).disabled)
+
     async def test_ds4_deepseek_v41_dspark_remains_available_for_tensor_parallel(self) -> None:
         target = {
             "name": "DeepSeek-V4.1-Flash-Q2.gguf",

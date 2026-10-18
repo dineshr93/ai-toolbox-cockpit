@@ -15,6 +15,7 @@ from ai_toolbox_cockpit.settings import load_default_toolbox
 from ai_toolbox_cockpit.widgets import CockpitCheckbox, ConfirmModal, SearchableSelect
 
 from .config import (
+    DEEPSEEK_V41_FAMILIES,
     get_artifact_role,
     get_model_artifact,
     get_model_server_defaults,
@@ -334,14 +335,16 @@ class Ds4ServerPanel(BackendServerPanel):
     def _refresh_v41_bounded_replay_control(
         self, model_path: str, model_changed: bool
     ) -> None:
-        supported = get_model_artifact(model_path).get("family") == "deepseek-v4.1-flash"
+        supported = get_model_artifact(model_path).get("family") in DEEPSEEK_V41_FAMILIES
         self.query_one("#ds4-v41-bounded-replay-zone", Vertical).styles.display = (
             "block" if supported else "none"
         )
         replay = self.query_one("#ds4-v41-bounded-replay-enabled", CockpitCheckbox)
         replay.disabled = not supported
         if model_changed or not supported:
-            replay.value = False
+            replay.value = supported and bool(
+                self._model_defaults.get("v41_decoder_swa_bounded_replay", False)
+            )
 
     def _refresh_vision_control(self, model_path: str, model_changed: bool) -> None:
         family = get_model_artifact(model_path).get("family")
@@ -394,8 +397,8 @@ class Ds4ServerPanel(BackendServerPanel):
         elif supported:
             note = (
                 "The support model uses a fixed five-token draft cap and the adaptive "
-                "scheduler. Auto uses DwarfStar's qualified ROCm default (currently "
-                "0.7); enter a value only to override it."
+                "scheduler. Auto leaves confidence to the runtime; enter a value "
+                "only to override it."
             )
         self.query_one("#ds4-dspark-note", Static).update(note)
         self._sync_dspark_controls()

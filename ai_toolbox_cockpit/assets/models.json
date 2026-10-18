@@ -1142,6 +1142,42 @@
           "id": "ds4-glm-5-3-flash-vision-encoder-gguf"
         },
         {
+          "name": "DeepSeek V4.1 Flash 1017 \u2014 Q2",
+          "family": "deepseek-v4.1-flash-1017",
+          "repo": "kyuz0/deepseek-v4.1-flash-gguf",
+          "filename": "DeepSeek-V4.1-Flash-1017-Q2.gguf",
+          "artifact_role": "main",
+          "size_gb": 365.713686528,
+          "recommended": false,
+          "sha256": "5365629079214ff28becbbab7c0900ef9865b79c0f0c64d951924bb362ae5b67",
+          "server_defaults": {
+            "standalone_ctx": 262144,
+            "distributed_ctx": 262144,
+            "ssd_streaming": true,
+            "ssd_experts": "92GB",
+            "tensor_parallel": true,
+            "distributed_transport": "tcp",
+            "distributed_port": 9911,
+            "rdma_device": "rocep194s0",
+            "rdma_port": 1,
+            "rdma_gid_index": 1
+          },
+          "id": "ds4-deepseek-v4-1-flash-1017-q2-gguf",
+          "revision": "c003853164273e7603c049b351fb0a98089ef356"
+        },
+        {
+          "id": "ds4-deepseek-v4-1-flash-1017-dspark-mxfp4-gguf",
+          "name": "DeepSeek V4.1 Flash 1017 \u2014 DSpark MXFP4 support (~7.42 GiB)",
+          "family": "deepseek-v4.1-flash-1017",
+          "repo": "kyuz0/deepseek-v4.1-flash-gguf",
+          "revision": "c003853164273e7603c049b351fb0a98089ef356",
+          "filename": "DeepSeek-V4.1-Flash-1017-DSpark-MXFP4.gguf",
+          "artifact_role": "dspark_support",
+          "size_gb": 7.966294016,
+          "recommended": false,
+          "sha256": "d3efe0b1f6b6fea54f1c58c5cbeb3fded5967b15b64476aed00c95806ad3e3e9"
+        },
+        {
           "name": "DeepSeek V4.1 Flash \u2014 Q2",
           "family": "deepseek-v4.1-flash",
           "repo": "antirez/deepseek-v4.1-flash-gguf",
@@ -1260,6 +1296,14 @@
           },
           "glm-5.3-flash": {
             "standalone_ctx": 262144
+          },
+          "deepseek-v4.1-flash-1017": {
+            "dspark_enabled": true,
+            "dspark_support_filename": "DeepSeek-V4.1-Flash-1017-DSpark-MXFP4.gguf",
+            "dspark_confidence": 0.5,
+            "dspark_confidence_auto": true,
+            "dspark_distributed": true,
+            "v41_decoder_swa_bounded_replay": true
           },
           "deepseek-v4.1-flash": {
             "dspark_enabled": true,

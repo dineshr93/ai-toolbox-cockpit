@@ -7,7 +7,8 @@ from ai_toolbox_cockpit.catalog import load_model_catalog
 # Tensor-parallel workers for these families are served by a different CLI than the
 # toolbox default. DeepSeek V4.1 Flash workers run `ds4`; every other role and
 # family keeps the binary declared by the toolbox profile.
-TENSOR_PARALLEL_WORKER_BINARIES: dict[str, str] = {"deepseek-v4.1-flash": "ds4"}
+DEEPSEEK_V41_FAMILIES = frozenset({"deepseek-v4.1-flash", "deepseek-v4.1-flash-1017"})
+TENSOR_PARALLEL_WORKER_BINARIES: dict[str, str] = {family: "ds4" for family in DEEPSEEK_V41_FAMILIES}
 DEFAULT_SERVER_BINARY = "ds4-server"
 
 
