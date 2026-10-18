@@ -113,6 +113,7 @@ class GufoServerPanel(BackendServerPanel):
                 widget_id = control.replace("_", "-")
                 self.query_one(f"#gufo-{widget_id}", Input).value = str(settings[control])
         self.query_one("#gufo-extra-args", TextArea).text = str(settings.get("extra_args", ""))
+        self._expected_extra_args = str(settings.get("extra_args_default", ""))
         self.set_platform(self.app.active_platform_id)
         self.refresh_model_inventory()
 
@@ -274,6 +275,7 @@ class GufoServerPanel(BackendServerPanel):
                 "thinking_effort": thinking_effort,
                 "vision_enabled": vision_enabled,
                 "extra_args": extra_args,
+                "extra_args_default": self._expected_extra_args,
             }
         except (ValueError, OSError) as error:
             self.notify(str(error), severity="error", timeout=10)
