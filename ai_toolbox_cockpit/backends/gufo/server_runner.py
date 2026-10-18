@@ -12,10 +12,13 @@ from .model_manager import get_model, resolved_files
 CONTAINER_NAME = "gufo-cockpit-server"
 _OWNED_OPTIONS = {
     "--host", "--port", "--sessions", "--model", "--context", "--max-tokens",
-    "--served-model-name", "--speculative", "--mtp-model", "--dflash-model",
+    "--speculative", "--mtp-model", "--dflash-model",
     "--dspark-model", "--mmproj",
     "--draft-tokens", "--think", "--reasoning-effort", "--max-pending-per-client",
 }
+# Set through the extra-args box as --served-model-name=<ID>, so the builder
+# must not emit its own copy.
+SERVED_MODEL_OPTION = "--served-model-name"
 
 
 def _extra_arguments(value: str) -> list[str]:
@@ -31,13 +34,21 @@ def _extra_arguments(value: str) -> list[str]:
     return arguments
 
 
+def _served_model_name(arguments: list[str], default: str) -> str:
+    prefix = f"{SERVED_MODEL_OPTION}="
+    for argument in arguments:
+        if argument.startswith(prefix):
+            return argument[len(prefix):] or default
+    return default
+
+
 def build_server_cmd(
     *, engine: str, image: str, engine_args: list[str], platform_id: str,
     model_id: str, speculation_mode: str = "baseline",
     host: str = "127.0.0.1", port: int = 18080, context_size: int | None = None,
     sessions: int = 1, max_tokens: int = 32768, draft_tokens: int | None = None,
     thinking_effort: str = "high", max_pending_per_client: int = 4,
-    vision_enabled: bool = False, extra_args: str = "", served_model_name: str = "",
+    vision_enabled: bool = False, extra_args: str = "",
 ) -> list[str]:
     if platform_id != "strix-halo":
         raise ValueError("Gufo supports Strix Halo (gfx1151) only.")
@@ -105,6 +116,7 @@ def build_server_cmd(
             raise ValueError("Download or repair the matching BF16 vision projector first.")
         projector_path = Path(projector)
 
+    extra = _extra_arguments(extra_args)
     command = [engine, "run", "--rm", "-it", "--name", CONTAINER_NAME]
     command.extend(upgrade_groups_for_podman(engine, list(engine_args)))
     command.append("--ipc=host")
@@ -138,7 +150,7 @@ def build_server_cmd(
         "--model", f"/models/target/{model_path.name}",
         "--context", str(context),
         "--max-tokens", str(max_tokens),
-        "--served-model-name", served_model_name or model["served_model_name"],
+        "--served-model-name", _served_model_name(extra, model["served_model_name"]),
     ])
     if projector_path is not None:
         command.extend(["--mmproj", f"/models/vision/{projector_path.name}"])
@@ -163,5 +175,8 @@ def build_server_cmd(
         ])
     elif speculation_mode == "dspark":
         command.extend(["--dspark-model", container_sidecar])
-    command.extend(_extra_arguments(extra_args))
+    command.extend(
+        argument for argument in extra
+        if not argument.startswith(f"{SERVED_MODEL_OPTION}=")
+    )
     return command

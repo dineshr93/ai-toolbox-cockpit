@@ -18,7 +18,7 @@ from ai_toolbox_cockpit.settings import (
 from ai_toolbox_cockpit.widgets import ConfirmModal, SearchableSelect
 
 from .model_manager import get_model, load_models, model_status, resolved_files
-from .server_runner import CONTAINER_NAME, build_server_cmd
+from .server_runner import CONTAINER_NAME, SERVED_MODEL_OPTION, build_server_cmd
 
 
 class GufoServerPanel(BackendServerPanel):
@@ -31,7 +31,7 @@ class GufoServerPanel(BackendServerPanel):
         self._pending_settings: dict = {}
         self._next_speculation_preference: str | None = None
         self._next_vision_preference: str | None = None
-        self._next_served_model: str | None = None
+        self._expected_extra_args = ""
 
     def compose(self) -> ComposeResult:
         with VerticalScroll():
@@ -59,7 +59,6 @@ class GufoServerPanel(BackendServerPanel):
                 (("context", "Context", "262144"), ("sessions", "Concurrent sessions", "1")),
                 (("max-tokens", "Maximum output", "32768"), ("max-pending-per-client", "Queued requests / client", "4")),
                 (("draft-tokens", "Speculative draft cap", "7"),),
-                (("served-model", "API model name", ""),),
             ):
                 with Horizontal(classes="compact-fields"):
                     for control, label, default in fields:
@@ -156,8 +155,6 @@ class GufoServerPanel(BackendServerPanel):
             else None
         )
         self._next_vision_preference = "on" if settings.get("vision_enabled", False) else "off"
-        saved_served_model = settings.get("served_model_name")
-        self._next_served_model = str(saved_served_model) if saved_served_model else None
         select.value = previous if previous in ids else next(
             entry["id"] for entry in models if entry.get("recommended")
         )
@@ -215,13 +212,15 @@ class GufoServerPanel(BackendServerPanel):
         vision_preference = self._next_vision_preference
         self._next_vision_preference = None
         self._refresh_vision(vision_preference)
-        served_model = self._next_served_model
-        self._next_served_model = None
+        box = self.query_one("#gufo-extra-args", TextArea)
+        if box.text not in ("", self._expected_extra_args):
+            return
         try:
             default = get_model(str(event.value or ""))["served_model_name"]
         except (ValueError, KeyError):
             default = ""
-        self.query_one("#gufo-served-model", Input).value = served_model or default
+        self._expected_extra_args = f"{SERVED_MODEL_OPTION}={default}" if default else ""
+        box.text = self._expected_extra_args
 
     @on(Button.Pressed, "#gufo-start")
     def start_pressed(self) -> None:
@@ -247,7 +246,6 @@ class GufoServerPanel(BackendServerPanel):
             thinking_effort = self.query_one("#gufo-think", SearchableSelect).value
             vision_enabled = self.query_one("#gufo-vision", SearchableSelect).value == "on"
             extra_args = self.query_one("#gufo-extra-args", TextArea).text.strip()
-            served_model_name = self.query_one("#gufo-served-model", Input).value.strip()
             self._pending_command = build_server_cmd(
                 engine=engine,
                 image=toolbox.image,
@@ -267,7 +265,6 @@ class GufoServerPanel(BackendServerPanel):
                 max_pending_per_client=int(values["max_pending_per_client"]),
                 draft_tokens=int(values["draft_tokens"]),
                 extra_args=extra_args,
-                served_model_name=served_model_name,
             )
             self._pending_settings = {
                 **values,
@@ -277,7 +274,6 @@ class GufoServerPanel(BackendServerPanel):
                 "thinking_effort": thinking_effort,
                 "vision_enabled": vision_enabled,
                 "extra_args": extra_args,
-                "served_model_name": served_model_name,
             }
         except (ValueError, OSError) as error:
             self.notify(str(error), severity="error", timeout=10)
