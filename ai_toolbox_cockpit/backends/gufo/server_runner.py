@@ -22,15 +22,17 @@ SERVED_MODEL_OPTION = "--served-model-name"
 
 
 def _extra_arguments(value: str) -> list[str]:
-    arguments = shlex.split(value)
+    # A real flag token never contains whitespace, so a quoted flag-and-value
+    # pair is what the user meant; split it back into separate words.
+    arguments = [
+        word
+        for argument in shlex.split(value)
+        for word in (argument.split() if argument.startswith("-") else [argument])
+    ]
     for argument in arguments:
         option = argument.split("=", 1)[0]
         if option in _OWNED_OPTIONS:
             raise ValueError(f"Use the dedicated Gufo control for {option}.")
-        if argument.startswith("-") and any(char.isspace() for char in argument):
-            raise ValueError(
-                f"Extra Gufo args must be unquoted separate words, not {argument!r}."
-            )
     return arguments
 
 

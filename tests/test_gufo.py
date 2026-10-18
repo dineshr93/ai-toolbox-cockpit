@@ -366,7 +366,11 @@ class GufoCommandTests(unittest.TestCase):
         self.assertEqual(command[command.index("--draft-tokens") + 1], "7")
 
     def test_extra_args_supply_the_served_model_name(self) -> None:
-        for form in ("--served-model-name=my-model", "--served-model-name my-model"):
+        for form in (
+            "--served-model-name=my-model",
+            "--served-model-name my-model",
+            "'--served-model-name my-model'",
+        ):
             with self.subTest(form=form):
                 with tempfile.TemporaryDirectory() as directory:
                     command = self.build(directory, extra_args=form)
@@ -379,11 +383,6 @@ class GufoCommandTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             with self.assertRaisesRegex(ValueError, "dedicated Gufo control"):
                 self.build(directory, extra_args="--context=4096")
-
-    def test_rejects_quoted_extra_argument_as_one_word(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            with self.assertRaisesRegex(ValueError, "unquoted separate words"):
-                self.build(directory, extra_args="'--served-model-name local-model'")
 
     def test_rejects_missing_target_and_sidecar(self) -> None:
         model = {
