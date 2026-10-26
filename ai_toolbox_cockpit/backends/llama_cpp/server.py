@@ -252,13 +252,19 @@ class LlamaCppServerPanel(BackendServerPanel):
         self.query_one("#llama-launch-profile-row").display = bool(profiles)
         select.set_options([("Model defaults / custom", "")] + [(p["name"], key) for key, p in profiles.items()])
         previous = str(select.value)
+        model_path = str(self.query_one("#llama-model", SearchableSelect).value)
+        def matches(profile):
+            return recommended_use_matches_model(
+                profile.get("recommended_use"), self._current_model_config,
+                model_path, require_filename=True,
+            )
         if self._pending_launch_profile in profiles:
             selected = self._pending_launch_profile
             self._pending_launch_profile = ""
-        elif previous in profiles and recommended_use_matches_model(profiles[previous].get("recommended_use"), self._current_model_config):
+        elif previous in profiles and matches(profiles[previous]):
             selected = previous
         else:
-            selected = next((key for key, p in profiles.items() if recommended_use_matches_model(p.get("recommended_use"), self._current_model_config)), "")
+            selected = next((key for key, profile in profiles.items() if matches(profile)), "")
         if str(select.value) != selected:
             select.value = selected
 

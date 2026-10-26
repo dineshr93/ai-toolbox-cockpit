@@ -12,7 +12,7 @@ class R9700CatalogueTests(unittest.TestCase):
     def test_each_image_has_one_installable_entry(self):
         catalog = load_toolbox_catalog()
         rows = catalog.platform_toolboxes('r9700')
-        self.assertEqual(len(rows), 8)
+        self.assertEqual(len(rows), 9)
         self.assertEqual(len({t.image for t in rows}), len(rows))
         vulkan = catalog.toolboxes['r9700-llama-vulkan-radv']
         self.assertIn('RADV_PERFTEST=nogttspill', catalog.runtime_profiles[vulkan.runtime_profile].engine_args)
@@ -56,7 +56,13 @@ class R9700ProfileUITests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(app.query_one('#llama-parallel', Input).value, '1')
                 self.assertEqual(app.query_one('#llama-load-mode', SearchableSelect).value, 'mmap')
                 self.assertIn('--lazy-mode on', app.query_one('#llama-extra-args', TextArea).text)
-                app.query_one('#server-backend-select', SearchableSelect).value = 'radiance'
+                app.query_one('#llama-image', SearchableSelect).value = 'r9700-llama-rocm-10-0'
+                await pilot.pause()
+                app.query_one('#llama-launch-profile', SearchableSelect).value = 'r9700-llama-rocm-10-qwen27-single'
+                await pilot.pause()
+                self.assertEqual(app.query_one('#llama-devices', Input).value, '0')
+                self.assertEqual(app.query_one('#llama-ubatch', Input).value, '512')
+                app.query_one('#server-backend-select', SearchableSelect).value = 'vllm-radiance'
                 await pilot.pause()
                 panel = app.query_one('#server-panel-vllm')
                 for model, enabled in [('vllm-qwen-qwen3-8-27b-fp8','0'), ('vllm-amd-qwen3-8-27b-mxfp4-mtpfp8','1')]:

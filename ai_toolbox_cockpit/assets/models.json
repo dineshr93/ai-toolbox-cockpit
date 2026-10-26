@@ -353,6 +353,28 @@
           "id": "llama-unsloth-deepseek-v4-flash-0731-gguf"
         },
         {
+          "name": "DeepSeek V4 Flash Vision Exp",
+          "repo": "unsloth/DeepSeek-V4-Flash-Vision-Exp-GGUF",
+          "revision": "87ce15810931a270f165e5e50439cd446f6b4ba5",
+          "vision_projector": {
+            "patterns": [
+              "mmproj-BF16.gguf"
+            ]
+          },
+          "default_inference_profile": "Thinking (Effort: Max)",
+          "inference_profiles": {
+            "Thinking (Effort: Max)": {
+              "description": "Sampled maximum-effort reasoning profile",
+              "args": "--reasoning on --chat-template-kwargs '{\"enable_thinking\":true,\"reasoning_effort\":\"max\"}' --temp 1.0 --top-p 0.95 --top-k 0 --min-p 0.0 --presence-penalty 0.0 --repeat-penalty 1.0"
+            },
+            "Instruct (No Reasoning)": {
+              "description": "Sampled direct-answer and image profile",
+              "args": "--reasoning off --chat-template-kwargs '{\"enable_thinking\":false}' --temp 1.0 --top-p 0.95 --top-k 0 --min-p 0.0 --presence-penalty 0.0 --repeat-penalty 1.0"
+            }
+          },
+          "id": "llama-unsloth-deepseek-v4-flash-vision-exp-gguf"
+        },
+        {
           "name": "MiMo V2.6 Flash RL",
           "repo": "ggml-org/MiMo-V2.6-Flash-RL-GGUF",
           "vision_projector": {
@@ -3685,6 +3707,65 @@
             "size_bytes": 28800138240,
             "sha256": "dd55c28902f38cd88134b2a569c51282c5ffce30080487e1a645740115c56cc3"
           }
+        }
+      ]
+    },
+    "radiance": {
+      "kind": "radiance_container",
+      "storage": {
+        "config_key": "radiance_models_dir",
+        "default": "~/models/radiance"
+      },
+      "models": [
+        {
+          "id": "radiance-qwen38-27b-fp8-edd43fda",
+          "name": "Qwen3.8-27B FP8",
+          "repo": "StillDeadcode/qwen3.8-27b-fp8",
+          "revision": "edd43fda378af6b3b5e8981b6e936145be9608fd",
+          "directory": "qwen38-27b-fp8-edd43fda",
+          "filename": "qwen3.8-27b-fp8.rad",
+          "size_bytes": 30783856640,
+          "family": "qwen38_27b",
+          "speculation": "dflash2",
+          "draft_tokens": 7,
+          "context_size": 67840,
+          "vision": true,
+          "recommended": true,
+          "tensor_parallel": 2
+        },
+        {
+          "id": "radiance-qwen38-27b-mxfp4-60bd4139",
+          "name": "Qwen3.8-27B MXFP4",
+          "repo": "StillDeadcode/qwen3.8-27b-mxfp4",
+          "revision": "60bd4139f335205fbc120e5534329c30b691af0e",
+          "directory": "qwen38-27b-mxfp4-60bd4139",
+          "filename": "qwen3.8-27b-mxfp4.rad",
+          "size_bytes": 19377119232,
+          "family": "qwen38_27b",
+          "speculation": "dflash2",
+          "draft_tokens": 7,
+          "context_size": 67840,
+          "vision": true,
+          "recommended": false,
+          "tensor_parallel": 1
+        },
+        {
+          "id": "radiance-qwen38-flash-iq4r-8267a673",
+          "name": "Qwen3.8-Flash-Next IQ4R",
+          "repo": "StillDeadcode/qwen3.8-next-flash-fp8-iq4r-moe",
+          "revision": "8267a67384583f6be309981baf878b09ff900a9a",
+          "directory": "qwen38-flash-iq4r-8267a673",
+          "filename": "qwen3.8-next-flash-fp8-iq4r-moe.rad",
+          "size_bytes": 121969901568,
+          "family": "qwen38_flash",
+          "speculation": "mtp",
+          "draft_tokens": 3,
+          "context_size": 67840,
+          "vision": true,
+          "recommended": false,
+          "tensor_parallel": 4,
+          "ngram_placement": "ram",
+          "max_sessions": 16
         }
       ]
     }

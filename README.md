@@ -9,10 +9,10 @@ AI Toolbox Cockpit is a Textual terminal application for running a local AI work
 Choose the hardware platform once, then use one cockpit to:
 
 - install, update, enter, and delete compatible Toolbx/Distrobox containers;
-- manage llama.cpp, DS4, and Gufo GGUF files, R9V model packages, and Halogen HGN bundles;
+- manage llama.cpp, DS4, and Gufo GGUF files, R9V model packages, Halogen HGN bundles, and standalone Radiance containers;
 - inspect vLLM Hugging Face repositories and cache state;
 - open ComfyUI's workflow-aware model manager;
-- configure and launch llama.cpp, DS4, Gufo, R9V, vLLM, ComfyUI, or Halogen Flash servers.
+- configure and launch llama.cpp, DS4, Gufo, R9V, vLLM, ComfyUI, Halogen Flash, or standalone Radiance servers.
 
 The cockpit does not pretend these backends are interchangeable. Each backend owns its model semantics, server form, validation, and command builder. Shared container behavior lives in one runtime layer.
 
@@ -59,7 +59,11 @@ pipx install --editable .
 
 The current R9V channel uses ROCm 10 with a 67,840-token context, one sequence, MTP-2 and disk-backed PLE for a 64 GB host. Install it from Toolboxes, then Download / Repair the curated package and Prepare PLE in Models. The earlier R9V channel remains available with its existing context settings. Current qualification covers text serving.
 
-GGZ14 has one toolbox entry with single-card and dual-card builds selected in Server Mode; Radiance and native FP8 provide dual-card profiles. Install their rolling channels from Toolboxes and choose the corresponding curated artifact in Models. MXFP4 preparation creates a separate checkpoint. DFlash2 uses a separate FP8 draft checkpoint and one sequence. Model directories are mounted read-only during serving.
+The [R9700 llama.cpp profiles](docs/R9700_LLAMA.md) include the one-card Qwen27 Q4XL baseline and four-card Flash Next Q4XL and DeepSeek V4 Flash Vision Q2XL configurations, with matching optional image projectors.
+
+[Standalone Radiance](docs/RADIANCE.md) provides native Qwen3.8-27B FP8 on two GPUs, MXFP4 on one GPU, and Flash Next IQ4R on four GPUs, with bundled vision and DFlash2/MTP decoding. Its model manager downloads revision-pinned `.rad` files.
+
+GGZ14 has one toolbox entry with single-card and dual-card builds selected in Server Mode; vLLM Radiance (legacy) and native FP8 retain their dual-card profiles. Install their rolling channels from Toolboxes and choose the corresponding curated artifact in Models. MXFP4 preparation creates a separate checkpoint. DFlash2 uses a separate FP8 draft checkpoint and one sequence. Model directories are mounted read-only during serving.
 
 ## Runtime requirements
 
@@ -242,7 +246,7 @@ The `toolbox_compatible: false` field in `toolboxes.json` selects the shared ser
 | Platform | Current catalog |
 | --- | --- |
 | AMD Strix Halo / gfx1151 | llama.cpp ROCm/Vulkan, vLLM TheRock, ComfyUI, DS4 variants, experimental Gufo ROCm 10.0, and Halogen Flash |
-| AMD Radeon AI PRO R9700 / gfx1201 | llama.cpp ROCm/Vulkan and experimental DS4 gfx1201 |
+| AMD Radeon AI PRO R9700 / gfx1201 | llama.cpp ROCm/Vulkan, standalone Radiance ROCm 10.1, vLLM variants, R9V and experimental DS4 gfx1201 |
 | Intel Arc B70 | llama.cpp SYCL and Vulkan |
 | NVIDIA GB10 | [GB10 Toolboxes](https://github.com/kyuz0/gb10-toolboxes): llama.cpp CUDA 13, DS4 CUDA 13, and experimental vLLM CUDA 13 nightly |
 
@@ -255,7 +259,7 @@ ai_toolbox_cockpit/
 ├── app.py                     # thin app shell, theme, platform state, update notice
 ├── assets/
 │   ├── toolboxes.json         # platforms, full OCI refs, container names, capabilities
-│   └── models.json            # seven backend-specific model/bundle schemas
+│   └── models.json            # backend-specific model/bundle schemas
 ├── catalog/                   # typed loading and cross-reference validation
 ├── runtime/                   # engines, Toolbx/Distrobox, registry, process lifecycle
 ├── views/                     # unified Toolboxes, Server Mode, and Models shells
@@ -265,6 +269,7 @@ ai_toolbox_cockpit/
     ├── r9v/                   # R9700 server, pinned package and PLE preparation
     ├── halogen/               # Strix Halo server and HGN precision bundles
     ├── gufo/                  # experimental Strix Halo server and pinned GGUF bundles
+    ├── radiance/              # native .rad models and R9700 server profiles
     ├── vllm/                  # server and HF defaults/cache browser
     └── comfyui/               # server and workflow-bundle/model-manager bridge
 ```

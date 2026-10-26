@@ -237,7 +237,7 @@ class LlamaToolboxProfileUiTests(unittest.IsolatedAsyncioTestCase):
                 app.query_one(TabbedContent).active = "tab-servers"
                 await pilot.pause()
                 for toolbox_id, devices, ubatch in (
-                    ("r9700-llama-rocm-10-qwen27-single", "0", "1024"),
+                    ("r9700-llama-rocm-10-qwen27-single", "0", "512"),
                     ("r9700-llama-vulkan-qwen27-single", "1", "2048"),
                 ):
                     app.query_one("#llama-image", SearchableSelect).value = app.toolbox_catalog.resolve_toolbox_id(toolbox_id)
@@ -245,7 +245,7 @@ class LlamaToolboxProfileUiTests(unittest.IsolatedAsyncioTestCase):
                     app.query_one("#llama-launch-profile", SearchableSelect).value = toolbox_id
                     await pilot.pause()
                     self.assertEqual(app.query_one("#llama-kv-type", SearchableSelect).value, "f16")
-                    self.assertEqual(app.query_one("#llama-devices", Input).value, "")
+                    self.assertEqual(app.query_one("#llama-devices", Input).value, "0" if toolbox_id.startswith("r9700-llama-rocm") else "")
                     app.query_one("#llama-devices", Input).value = devices
                     self.assertEqual(app.query_one("#llama-ubatch", Input).value, ubatch)
                     self.assertEqual(app.query_one("#llama-context", Input).value, "68096")

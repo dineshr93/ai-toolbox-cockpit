@@ -82,10 +82,16 @@ def get_local_vision_projectors(
     if not model_file.is_file():
         return []
 
+    roots = [model_file.parent]
+    shard = re.fullmatch(r"(.+)-[0-9]{5}-of-[0-9]{5}\.gguf", model_file.name, re.IGNORECASE)
+    # Hub quantization directories keep the shared projector one level above shards.
+    if shard and shard.group(1).lower().endswith("-" + model_file.parent.name.lower()):
+        roots.append(model_file.parent.parent)
     projectors = {
         candidate
+        for root in roots
         for pattern in patterns
-        for candidate in model_file.parent.glob(pattern)
+        for candidate in root.glob(pattern)
         if candidate.is_file()
     }
     return sorted(projectors, key=lambda path: path.name.lower())
