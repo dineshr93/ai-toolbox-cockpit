@@ -146,6 +146,17 @@ class EngineNavigationTests(IsolatedAsyncioTestCase):
                 app.query_one('#radiance-model', SearchableSelect).value = flash.id
                 await pilot.pause()
                 self.assertEqual(app.query_one('#radiance-tp', Input).value, '4')
+                self.assertFalse(app.query_one('#radiance-sessions', Input).disabled)
+                flash_target = Path(directory)/flash.directory/flash.filename
+                flash_target.parent.mkdir()
+                with flash_target.open('wb') as stream:
+                    stream.truncate(flash.size_bytes)
+                app.query_one('#radiance-sessions', Input).value = '16'
+                with patch.object(app, 'push_screen') as confirm:
+                    server.start()
+                    command = confirm.call_args.args[0].copy_text
+                    self.assertIn('--max-num-seqs 16', command)
+                    self.assertIn('--ngram-placement ram', command)
                 app.query_one('#server-backend-select', SearchableSelect).value = 'vllm-radiance'
                 await pilot.pause()
                 self.assertEqual(app.query_one('#server-content-switcher').current, 'server-panel-vllm')

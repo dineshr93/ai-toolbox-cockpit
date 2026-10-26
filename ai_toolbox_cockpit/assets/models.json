@@ -3742,7 +3742,8 @@
           "vision": true,
           "recommended": false,
           "tensor_parallel": 4,
-          "ngram_placement": "ram"
+          "ngram_placement": "ram",
+          "max_sessions": 16
         }
       ]
     }
