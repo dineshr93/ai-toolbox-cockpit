@@ -10,6 +10,8 @@ Install **llama.cpp · ROCm 10.0** on the R9700 platform. Select the model in Se
 
 Keep every decoder shard and download the projector separately from the same repository revision. Cockpit finds a shared projector beside the quantization directory as well as beside a decoder file. Select it explicitly in the **Projector** control; leaving that control empty starts text-only serving. The Flash Next set has four decoder shards and DeepSeek Vision has three. These profiles were qualified with llama.cpp build 11872, source `344be0a60074e6395da3c4a4f300f7361df5a67d`.
 
+The Flash loader also maps a 26.82 GiB per-layer token-embedding table from disk; OS page-cache residency varies with workload. These configurations were qualified on a 64 GB host.
+
 All three models passed sampled text, thinking, image input and required tool calls. DeepSeek Vision also passed two-image input with reversed image order. For Qwen, the sampled thinking profile uses temperature 1.0, top-p 0.95, top-k 20 and min-p 0; direct answers use temperature 0.7, top-p 0.8 and presence penalty 1.5. DeepSeek's sampled profiles use temperature 1.0, top-p 0.95, top-k 0 and min-p 0, with explicit maximum-effort thinking or disabled reasoning. Server defaults and client request settings are separate; clients can override sampling.
 
 ## Measured depth profiles
@@ -24,4 +26,11 @@ The standard raw-completion workload appends 2,048 new tokens, generates exactly
 
 All three curves use batch 2048, F16 KV and one sequence. The measured total context allocation is 68,096 tokens. Flash Next and DeepSeek Vision expose this as a separate measured allocation; their normal launches start at 8,192 tokens. The earlier Qwen27 episode allocations remain available alongside the current calibrated one-card default. See the [complete speed viewer](https://local-llm-benchmarks.dev/speed.html) for all depths and repeat variation.
 
-Qwen27's target-only frozen short100/long12 panels completed all 100/12 cases with 5,836/764 local target tokens and NLL 0.279769/0.099542. Hosted byte comparisons include 99 short cases and all 12 long cases. The hosted endpoint does not disclose its precision; these scores do not establish original-weight logit parity.
+The Qwen target-only frozen panels completed all 100 short and 12 long-context cases for each artifact. NLL is per local target token; lower is better.
+
+| Artifact | Short100 NLL | Long12 NLL | Short / long target tokens |
+| --- | ---: | ---: | ---: |
+| Qwen27 Q4XL | 0.279769 | 0.099542 | 5,836 / 764 |
+| Flash Next Q4XL | 0.284752 | 0.126600 | 5,696 / 766 |
+
+Hosted whole-continuation comparisons include 99 Qwen27 short cases, 98 Flash short cases and all 12 long cases for both. The excluded hosted token bytes do not reconstruct their saved response text; local panels remain complete. Provider Qwen precision is undisclosed, and the Flash endpoint is described as based on Flash Next. These scores do not establish original-weight logit parity.
