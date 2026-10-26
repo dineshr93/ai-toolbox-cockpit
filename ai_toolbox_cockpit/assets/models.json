@@ -353,6 +353,28 @@
           "id": "llama-unsloth-deepseek-v4-flash-0731-gguf"
         },
         {
+          "name": "DeepSeek V4 Flash Vision Exp",
+          "repo": "unsloth/DeepSeek-V4-Flash-Vision-Exp-GGUF",
+          "revision": "87ce15810931a270f165e5e50439cd446f6b4ba5",
+          "vision_projector": {
+            "patterns": [
+              "mmproj-BF16.gguf"
+            ]
+          },
+          "default_inference_profile": "Thinking (Effort: Max)",
+          "inference_profiles": {
+            "Thinking (Effort: Max)": {
+              "description": "Sampled maximum-effort reasoning profile",
+              "args": "--reasoning on --chat-template-kwargs '{\"enable_thinking\":true,\"reasoning_effort\":\"max\"}' --temp 1.0 --top-p 0.95 --top-k 0 --min-p 0.0 --presence-penalty 0.0 --repeat-penalty 1.0"
+            },
+            "Instruct (No Reasoning)": {
+              "description": "Sampled direct-answer and image profile",
+              "args": "--reasoning off --chat-template-kwargs '{\"enable_thinking\":false}' --temp 1.0 --top-p 0.95 --top-k 0 --min-p 0.0 --presence-penalty 0.0 --repeat-penalty 1.0"
+            }
+          },
+          "id": "llama-unsloth-deepseek-v4-flash-vision-exp-gguf"
+        },
+        {
           "name": "MiMo V2.6 Flash RL",
           "repo": "ggml-org/MiMo-V2.6-Flash-RL-GGUF",
           "vision_projector": {

@@ -774,7 +774,7 @@ class AppMountTests(IsolatedAsyncioTestCase):
                 self.assertIn('"enable_thinking":false', extra_args.text)
                 self.assertIn("--reasoning off", extra_args.text)
 
-    async def test_qwen_3_8_flash_next_unsets_gpu_layers_only_on_r9700(self) -> None:
+    async def test_qwen_3_8_flash_gpu_layers_follow_the_selected_profile(self) -> None:
         local_model = {
             "name": "Qwen3.8-Flash-Next-UD-Q4_K_XL.gguf",
             "path": (
@@ -801,7 +801,8 @@ class AppMountTests(IsolatedAsyncioTestCase):
                 platform = app.query_one("#platform-select", SearchableSelect)
                 platform.value = "r9700"
                 await pilot.pause()
-                self.assertEqual(gpu_layers.value, "")
+                self.assertEqual(gpu_layers.value, "999")
+                self.assertEqual(app.query_one("#llama-devices", Input).value, "0,1,2,3")
 
                 image = app.query_one("#llama-image", SearchableSelect)
                 image.value = "r9700-llama-vulkan-radv"

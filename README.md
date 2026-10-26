@@ -59,6 +59,8 @@ pipx install --editable .
 
 The current R9V channel uses ROCm 10 with a 67,840-token context, one sequence, MTP-2 and disk-backed PLE for a 64 GB host. Install it from Toolboxes, then Download / Repair the curated package and Prepare PLE in Models. The earlier R9V channel remains available with its existing context settings. Current qualification covers text serving.
 
+The [R9700 llama.cpp profiles](docs/R9700_LLAMA.md) include the one-card Qwen27 Q4XL baseline and four-card Flash Next Q4XL and DeepSeek V4 Flash Vision Q2XL configurations, with matching optional image projectors.
+
 [Standalone Radiance](docs/RADIANCE.md) provides native Qwen3.8-27B FP8 on two GPUs, MXFP4 on one GPU, and Flash Next IQ4R on four GPUs, with bundled vision and DFlash2/MTP decoding. Its model manager downloads revision-pinned `.rad` files.
 
 GGZ14 has one toolbox entry with single-card and dual-card builds selected in Server Mode; vLLM Radiance (legacy) and native FP8 retain their dual-card profiles. Install their rolling channels from Toolboxes and choose the corresponding curated artifact in Models. MXFP4 preparation creates a separate checkpoint. DFlash2 uses a separate FP8 draft checkpoint and one sequence. Model directories are mounted read-only during serving.

@@ -83,11 +83,13 @@ class EngineNavigationTests(IsolatedAsyncioTestCase):
             app.query_one(TabbedContent).active = 'tab-models'
             await pilot.pause()
             repo = app.query_one('#llama-download-repo', SearchableSelect)
-            self.assertEqual(len(repo._options), 2)
-            self.assertIn('UD-Q4_K_XL', repo._options[0][0])
-            self.assertIn('UD-Q2_K_XL', repo._options[1][0])
+            labels = {value: label for label, value in repo._options}
+            self.assertEqual(set(labels), {'unsloth/Qwen3.8-27B-GGUF', 'unsloth/Qwen3.8-Flash-Next-GGUF', 'unsloth/DeepSeek-V4-Flash-Vision-Exp-GGUF'})
+            self.assertIn('UD-Q4_K_XL', labels['unsloth/Qwen3.8-27B-GGUF'])
+            self.assertIn('UD-Q4_K_XL', labels['unsloth/Qwen3.8-Flash-Next-GGUF'])
+            self.assertIn('UD-Q2_K_XL', labels['unsloth/DeepSeek-V4-Flash-Vision-Exp-GGUF'])
             panel = app.query_one('#model-panel-llama_cpp')
-            target = 'Qwen3.8-Flash-Next-UD-Q2_K_XL-*-of-*.gguf'
+            target = 'Qwen3.8-Flash-Next-UD-Q4_K_XL-*-of-*.gguf'
             with patch.object(app, 'push_screen'):
                 panel._show_quants('unsloth/Qwen3.8-Flash-Next-GGUF', ['Qwen3.8-Flash-Next-Q8_0.gguf', target], {})
             self.assertEqual(panel._download_quants[0], target)
@@ -97,7 +99,7 @@ class EngineNavigationTests(IsolatedAsyncioTestCase):
             # Profiles remain visible before downloading any local model.
             app.query_one(TabbedContent).active = 'tab-servers'
             await pilot.pause()
-            self.assertEqual(len(app.query_one('#llama-launch-profile', SearchableSelect)._options), 6)
+            self.assertEqual(len(app.query_one('#llama-launch-profile', SearchableSelect)._options), 8)
 
     async def test_standalone_radiance_routes_native_models_and_qualified_gpu_profile(self):
         import tempfile

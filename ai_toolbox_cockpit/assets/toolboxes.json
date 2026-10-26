@@ -822,6 +822,97 @@
           }
         },
         "launch_profiles": {
+          "r9700-llama-rocm-10-deepvision-q2xl-four": {
+            "name": "DeepSeek V4 Flash Vision Q2XL · four R9700s · ROCm 10",
+            "recommended_use": {
+              "platform_id": "r9700",
+              "model_id": "llama-unsloth-deepseek-v4-flash-vision-exp-gguf",
+              "model_filename_pattern": "*UD-Q2_K_XL*.gguf",
+              "model_display_name": "DeepSeek V4 Flash Vision Exp UD-Q2_K_XL",
+              "message": "Four-card DeepSeek V4 Flash Vision baseline with the matching BF16 projector.",
+              "documentation_url": "https://github.com/kyuz0/ai-toolbox-cockpit/blob/main/docs/R9700_LLAMA.md",
+              "notes": [
+                "Validated sampled text, maximum-effort thinking, single/two-image input and required tool calls with llama.cpp build 11872 (344be0a6).",
+                "Uses Unsloth revision 87ce1581, all three UD-Q2_K_XL shards and mmproj-BF16.gguf.",
+                "Select ROCm devices 0,1,2,3 with equal layer splitting. Baseline only; this profile does not enable DSpark.",
+                "Select the matching projector explicitly for image input; it is shared above the quantization directory.",
+                "The standard C1 workload completed all nine history depths through 64K with calibrated ubatch 512."
+              ],
+              "server_defaults": {
+                "context_size": 8192,
+                "batch_size": 2048,
+                "ubatch_size": 512,
+                "gpu_layers": 999,
+                "hip_devices": "0,1,2,3",
+                "parallel_sequences": 1,
+                "kv_cache_type": "f16",
+                "load_mode": "none",
+                "flash_attention": true,
+                "mtp_enabled": false,
+                "extra_args": "--jinja --split-mode layer --tensor-split 1,1,1,1"
+              }
+            },
+            "performance_profiles": {
+              "depth64k": {
+                "name": "Measured C1 allocation · 64K history",
+                "client_concurrency": [
+                  1
+                ],
+                "server_defaults": {
+                  "context_size": 68096,
+                  "parallel_sequences": 1,
+                  "batch_size": 2048,
+                  "ubatch_size": 512
+                },
+                "note": "Standard C1 depth curve; context includes the 2048-token append, output and allocation padding."
+              }
+            }
+          },
+          "r9700-llama-rocm-10-flash-q4xl-four": {
+            "name": "Qwen3.8 Flash Next Q4XL · four R9700s · ROCm 10",
+            "recommended_use": {
+              "platform_id": "r9700",
+              "model_id": "llama-unsloth-qwen3-8-flash-next-gguf",
+              "model_filename_pattern": "*UD-Q4_K_XL*.gguf",
+              "model_display_name": "Qwen3.8 Flash Next UD-Q4_K_XL",
+              "message": "Four-card Flash Next Q4XL baseline with optional image input.",
+              "documentation_url": "https://github.com/kyuz0/ai-toolbox-cockpit/blob/main/docs/R9700_LLAMA.md",
+              "notes": [
+                "Validated with llama.cpp build 11872 (344be0a6), Unsloth revision 766911a6 and the matching BF16 projector.",
+                "Sampled text, thinking, image input and required tool calls passed. All nine C1 depths through 64K history completed.",
+                "The preset selects ROCm devices 0,1,2,3 with equal layer splitting; baseline only.",
+                "Select the matching mmproj-BF16.gguf for image input; it is shared above the quantization directory."
+              ],
+              "server_defaults": {
+                "context_size": 8192,
+                "batch_size": 2048,
+                "ubatch_size": 2048,
+                "gpu_layers": 999,
+                "hip_devices": "0,1,2,3",
+                "parallel_sequences": 1,
+                "kv_cache_type": "f16",
+                "load_mode": "none",
+                "flash_attention": true,
+                "mtp_enabled": false,
+                "extra_args": "--jinja --split-mode layer --tensor-split 1,1,1,1"
+              }
+            },
+            "performance_profiles": {
+              "depth64k": {
+                "name": "Measured C1 allocation · 64K history",
+                "client_concurrency": [
+                  1
+                ],
+                "server_defaults": {
+                  "context_size": 68096,
+                  "parallel_sequences": 1,
+                  "batch_size": 2048,
+                  "ubatch_size": 2048
+                },
+                "note": "Standard C1 depth curve; context includes the 2048-token append, output and allocation padding."
+              }
+            }
+          },
           "r9700-llama-rocm-10-qwen27-single": {
             "name": "Qwen3.8 27B Q4 · one R9700 · rocm-10",
             "recommended_use": {
@@ -832,15 +923,17 @@
               "message": "One-card Qwen3.8 27B Q4 baseline with F16 KV.",
               "documentation_url": "https://github.com/kyuz0/amd-r9700-ai-toolboxes",
               "notes": [
-                "Validated with llama.cpp build 11347 and Unsloth revision 4ca72078 at all standard 0–64K history depths.",
+                "Validated with llama.cpp build 11872 (344be0a6), Unsloth revision 4ca72078 and the matching BF16 projector at all standard 0–64K history depths; sampled text, thinking, vision and tools passed.",
                 "The preset uses device index 0. Check llama-server --list-devices and adjust GPU devices to your selected R9700.",
-                "Baseline only; MTP is disabled for this tested profile."
+                "Baseline only; MTP is disabled for this tested profile.",
+                "The current C1 profile uses batch 2048 and calibrated ubatch 512; the retained episode allocation below records the earlier build."
               ],
               "server_defaults": {
                 "context_size": 68096,
                 "batch_size": 2048,
-                "ubatch_size": 1024,
+                "ubatch_size": 512,
                 "gpu_layers": 999,
+                "hip_devices": "0",
                 "parallel_sequences": 1,
                 "kv_cache_type": "f16",
                 "load_mode": "none",

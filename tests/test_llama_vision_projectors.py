@@ -50,6 +50,23 @@ class VisionProjectorsTest(unittest.TestCase):
 
             self.assertEqual([entry["path"] for entry in discovered], [str(model)])
 
+    def test_sharded_quant_finds_shared_projector_without_searching_other_models(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            repo = root / "DeepSeek-V4-Flash-Vision-Exp-GGUF"
+            quant = repo / "UD-Q2_K_XL"
+            quant.mkdir(parents=True)
+            model = quant / "DeepSeek-V4-Flash-Vision-Exp-UD-Q2_K_XL-00001-of-00003.gguf"
+            model.touch()
+            projector = repo / "mmproj-BF16.gguf"
+            projector.touch()
+            other = root / "mmproj-other.gguf"
+            other.touch()
+            self.assertEqual(get_local_vision_projectors(str(model), ["mmproj-*.gguf"]), [projector])
+            flat = repo / "DeepSeek-V4-Flash-Vision-Exp-UD-Q2_K_XL-00001-of-00003.gguf"
+            flat.touch()
+            self.assertEqual(get_local_vision_projectors(str(flat), ["mmproj-*.gguf"]), [projector])
+
     def test_server_adds_only_the_explicitly_selected_vision_projector(self):
         with tempfile.TemporaryDirectory() as temporary:
             model_dir = Path(temporary) / "Muse-Glimmer-30B-GGUF"
