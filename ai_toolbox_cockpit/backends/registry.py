@@ -1,6 +1,8 @@
 from collections.abc import Collection
 
 from .base import BackendDefinition
+from .radiance.models import RadianceModelPanel
+from .radiance.server import RadianceServerPanel
 from .comfyui.models import ComfyUiModelPanel
 from .comfyui.server import ComfyUiServerPanel
 from .ds4.models import Ds4ModelPanel
@@ -25,6 +27,7 @@ BACKENDS: dict[str, BackendDefinition] = {
     "gufo": BackendDefinition("gufo", "Gufo", GufoServerPanel, GufoModelPanel),
     "halogen": BackendDefinition("halogen", "Halogen Flash", HalogenServerPanel, HalogenModelPanel),
     "r9v": BackendDefinition("r9v", "R9V (R9700)", R9vServerPanel, R9vModelPanel),
+    "radiance": BackendDefinition("radiance", "Standalone Radiance", RadianceServerPanel, RadianceModelPanel),
 }
 
 

@@ -4,7 +4,7 @@ from pathlib import PurePosixPath
 from typing import Any
 
 
-BACKEND_IDS = frozenset({"llama_cpp", "vllm", "comfyui", "ds4", "gufo", "halogen", "r9v"})
+BACKEND_IDS = frozenset({"llama_cpp", "vllm", "comfyui", "ds4", "gufo", "halogen", "r9v", "radiance"})
 FEATURE_STATES = frozenset({"supported", "experimental", "unavailable"})
 FEATURE_IDS = frozenset({"interactive", "models", "server"})
 CHANNELS = frozenset({"stable", "development", "experimental"})
@@ -12,6 +12,7 @@ MATURITY_STATES = frozenset({"stable", "experimental"})
 LLAMA_KV_CACHE_TYPES = frozenset({"default", "f16", "q8_0", "q5_1", "q5_0", "q4_1", "q4_0"})
 LLAMA_LOAD_MODES = frozenset({"none", "mmap", "dio"})
 MODEL_KINDS = {
+    "radiance": "radiance_container",
     "r9v": "r9v_package",
     "halogen": "hgn_bundle",
     "llama_cpp": "gguf",
@@ -42,7 +43,13 @@ def _required_string_list(data: dict, key: str, context: str) -> list[str]:
 
 def _validate_model_entry(backend_id: str, entry: dict[str, Any], context: str) -> None:
     _required_string(entry, "name", context)
-    if backend_id == "llama_cpp":
+    if backend_id == "radiance":
+        from ai_toolbox_cockpit.backends.radiance.model_manager import RadianceModel
+        try:
+            RadianceModel.from_entry(entry)
+        except (KeyError, TypeError, ValueError) as error:
+            raise CatalogError(f"{context}: {error}") from error
+    elif backend_id == "llama_cpp":
         _required_string(entry, "repo", context)
         profiles = entry.get("inference_profiles", {})
         if not isinstance(profiles, dict):

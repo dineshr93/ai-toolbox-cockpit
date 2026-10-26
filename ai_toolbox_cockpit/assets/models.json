@@ -3687,6 +3687,65 @@
           }
         }
       ]
+    },
+    "radiance": {
+      "kind": "radiance_container",
+      "storage": {
+        "config_key": "radiance_models_dir",
+        "default": "~/models/radiance"
+      },
+      "models": [
+        {
+          "id": "radiance-qwen38-27b-fp8-edd43fda",
+          "name": "Qwen3.8-27B FP8",
+          "repo": "StillDeadcode/qwen3.8-27b-fp8",
+          "revision": "edd43fda378af6b3b5e8981b6e936145be9608fd",
+          "directory": "qwen38-27b-fp8-edd43fda",
+          "filename": "qwen3.8-27b-fp8.rad",
+          "size_bytes": 30783856640,
+          "family": "qwen38_27b",
+          "speculation": "dflash2",
+          "draft_tokens": 7,
+          "context_size": 67840,
+          "vision": true,
+          "recommended": true,
+          "tensor_parallel": 2
+        },
+        {
+          "id": "radiance-qwen38-27b-mxfp4-60bd4139",
+          "name": "Qwen3.8-27B MXFP4",
+          "repo": "StillDeadcode/qwen3.8-27b-mxfp4",
+          "revision": "60bd4139f335205fbc120e5534329c30b691af0e",
+          "directory": "qwen38-27b-mxfp4-60bd4139",
+          "filename": "qwen3.8-27b-mxfp4.rad",
+          "size_bytes": 19377119232,
+          "family": "qwen38_27b",
+          "speculation": "dflash2",
+          "draft_tokens": 7,
+          "context_size": 67840,
+          "vision": true,
+          "recommended": false,
+          "tensor_parallel": 1
+        },
+        {
+          "id": "radiance-qwen38-flash-iq4r-8267a673",
+          "name": "Qwen3.8-Flash-Next IQ4R",
+          "repo": "StillDeadcode/qwen3.8-next-flash-fp8-iq4r-moe",
+          "revision": "8267a67384583f6be309981baf878b09ff900a9a",
+          "directory": "qwen38-flash-iq4r-8267a673",
+          "filename": "qwen3.8-next-flash-fp8-iq4r-moe.rad",
+          "size_bytes": 121969901568,
+          "family": "qwen38_flash",
+          "speculation": "mtp",
+          "draft_tokens": 3,
+          "context_size": 67840,
+          "vision": true,
+          "recommended": false,
+          "tensor_parallel": 4,
+          "ngram_placement": "ram",
+          "max_sessions": 16
+        }
+      ]
     }
   }
 }

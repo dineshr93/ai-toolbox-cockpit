@@ -1568,7 +1568,7 @@
     {
       "id": "r9700-radiance-fp8-tp2",
       "backend": "vllm",
-      "name": "Radiance",
+      "name": "vLLM Radiance (legacy)",
       "container_name": "r9700-radiance-fp8-tp2",
       "group": "Dev/Experimental Toolboxes",
       "image": "docker.io/kyuz0/amd-r9700-vllm-toolboxes:radiance",
@@ -1725,8 +1725,8 @@
           "r9700-radiance-mxfp4-tp2": "vllm-amd-qwen3-8-27b-mxfp4-mtpfp8"
         },
         "engine_selector": {
-          "id": "radiance",
-          "label": "Radiance"
+          "id": "vllm-radiance",
+          "label": "vLLM Radiance (legacy)"
         }
       }
     },
@@ -1758,6 +1758,24 @@
           "id": "tcclaviger",
           "label": "tcclaviger"
         }
+      }
+    },
+    {
+      "id": "r9700-radiance-rocm-10-1",
+      "backend": "radiance",
+      "name": "Standalone Radiance",
+      "container_name": "radiance-rocm-10.1",
+      "group": "Dev/Experimental Toolboxes",
+      "image": "docker.io/kyuz0/amd-r9700-toolboxes:radiance-rocm-10.1",
+      "channel": "experimental",
+      "maturity": "experimental",
+      "description": "Standalone Radiance 1.12.0, ROCm 10.1 and stock compiler for R9700. Native .rad Qwen models with bundled vision and drafting heads.",
+      "runtime_profile": "amd-rocm",
+      "toolbox_compatible": true,
+      "features": {
+        "interactive": "supported",
+        "models": "experimental",
+        "server": "experimental"
       }
     }
   ],
@@ -1806,12 +1824,14 @@
         "r9700-vllm-714-fp8",
         "r9700-ggz14-mxfp4-tp1",
         "r9700-radiance-fp8-tp2",
-        "r9700-tcclaviger-flash-next-tp2"
+        "r9700-tcclaviger-flash-next-tp2",
+        "r9700-radiance-rocm-10-1"
       ],
       "defaults": {
         "llama_cpp": "r9700-llama-rocm-10-0",
         "r9v": "r9700-r9v-v044-rocm-10",
-        "vllm": "r9700-vllm-714-fp8"
+        "vllm": "r9700-vllm-714-fp8",
+        "radiance": "r9700-radiance-rocm-10-1"
       }
     },
     {
