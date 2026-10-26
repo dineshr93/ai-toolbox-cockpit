@@ -92,6 +92,7 @@ class CatalogTests(unittest.TestCase):
     def test_r9700_toolboxes_match_the_active_source_images(self) -> None:
         catalog = load_toolbox_catalog()
         expected = {
+            "r9700-radiance-rocm-10-1": "docker.io/kyuz0/amd-r9700-toolboxes:radiance-rocm-10.1",
             "r9700-tcclaviger-flash-next-tp2": "docker.io/tcclaviger/vllm:latest",
             "r9700-radiance-fp8-tp2": "docker.io/kyuz0/amd-r9700-vllm-toolboxes:radiance",
             "r9700-r9v-v044-rocm-10": "docker.io/kyuz0/amd-r9700-toolboxes:r9v-rocm-10.0-current",
